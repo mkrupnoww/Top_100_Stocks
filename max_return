@@ -1,0 +1,53 @@
+WITH tab_close_num AS (
+SELECT ticker,
+       date_d, 
+       "close" AS price_close,
+       ROW_NUMBER() OVER (PARTITION BY ticker, DATE_TRUNC('month', date_d) ORDER BY ticker, date_d DESC) AS rn 
+FROM research.market_data
+GROUP BY ticker, date_d, price_close
+), prev_close_price_tab AS (
+SELECT ticker,
+       date_d AS date_daily_close,
+       price_close,
+       LAG(price_close) OVER (PARTITION BY ticker ORDER BY ticker, DATE_TRUNC('month', date_d )) AS prev_close_price
+FROM tab_close_num
+WHERE rn = 1
+GROUP BY ticker, date_daily_close, price_close
+), tab_close AS (
+SELECT ticker,
+       DATE_TRUNC('month', date_daily_close)::date AS data_close_month,
+       price_close,
+       prev_close_price
+FROM prev_close_price_tab
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), log_return_prec_month_tab AS (
+SELECT ticker,
+       data_close_month,
+       round((LN(price_close / prev_close_price))::NUMERIC * 100, 2) AS log_return_prec_month
+FROM tab_close
+WHERE EXTRACT(YEAR FROM data_close_month) BETWEEN 2000 AND 2024 
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), sum_log_return_tab AS (
+SELECT ticker,
+       sum(log_return_prec_month) AS sum_log_return
+FROM log_return_prec_month_tab
+GROUP BY ticker
+), filter_ipo_tab AS (
+SELECT ticker,
+       min(date_d),
+       max(date_d),
+       avg(vol) AS avg_vol
+FROM research.market_data
+GROUP BY ticker
+HAVING min(date_d) <= '2015-01-01' AND max(date_d) >= '2024-12-01' AND avg(vol) >= 1000000
+)
+SELECT fit.ticker,
+       sum_log_return
+FROM sum_log_return_tab srt
+JOIN filter_ipo_tab fit ON srt.ticker = fit.ticker
+ORDER BY sum_log_return DESC 
+
+
+
+
+

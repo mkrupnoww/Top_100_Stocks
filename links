@@ -1,0 +1,3 @@
+URL('https://finance.yahoo.com/quote/'+STR([Ticker])+'/chart',STR("chart link"))
+
+URL('https://finance.yahoo.com/quote/'+STR([Ticker])+'/chart',STR("chart link") + ' ' + str([Ticker]))

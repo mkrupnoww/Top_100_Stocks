@@ -1,0 +1,68 @@
+--max_drowdawn
+WITH tab_close_num AS (
+SELECT ticker,
+       date_d, 
+       "close" AS price_close,
+       ROW_NUMBER() OVER (PARTITION BY ticker, DATE_TRUNC('month', date_d) ORDER BY ticker, date_d DESC) AS rn 
+FROM research.market_data
+GROUP BY ticker, date_d, price_close
+), prev_close_price_tab AS (
+SELECT ticker,
+       date_d AS date_daily_close,
+       price_close,
+       LAG(price_close) OVER (PARTITION BY ticker ORDER BY ticker, DATE_TRUNC('month', date_d )) AS prev_close_price
+FROM tab_close_num
+WHERE rn = 1
+GROUP BY ticker, date_daily_close, price_close
+), tab_close AS (
+SELECT ticker,
+       DATE_TRUNC('month', date_daily_close)::date AS data_close_month,
+       price_close,
+       prev_close_price
+FROM prev_close_price_tab
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), log_return_prec_month_tab AS (
+SELECT ticker,
+       data_close_month,
+       round((LN(price_close / prev_close_price))::NUMERIC * 100, 2) AS log_return_prec_month
+FROM tab_close
+WHERE EXTRACT(YEAR FROM data_close_month) BETWEEN 2000 AND 2024 
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), PL_return_tab AS (
+SELECT ticker,
+       data_close_month,
+       sum(log_return_prec_month) OVER (PARTITION BY ticker ORDER BY data_close_month) AS PL_return
+FROM log_return_prec_month_tab
+ORDER BY ticker, data_close_month
+), drawdown_tab AS (
+    SELECT ticker,
+           data_close_month,
+           PL_return,
+           MAX(PL_return) OVER (PARTITION BY ticker ORDER BY data_close_month ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS max_PL_return
+    FROM PL_return_tab
+), max_drowdawn_tab AS (
+SELECT ticker,
+       MAX(max_PL_return - PL_return) AS max_drowdawn
+FROM drawdown_tab
+GROUP BY ticker
+ORDER BY max_drowdawn DESC 
+), filter_ipo_tab AS (
+SELECT ticker,
+       min(date_d),
+       max(date_d),
+       avg(vol) AS avg_vol
+FROM research.market_data
+GROUP BY ticker
+HAVING min(date_d) <= '2015-01-01' AND max(date_d) >= '2024-12-01' AND avg(vol) >= 1000000
+)
+SELECT fit.ticker,
+       max_drowdawn
+FROM max_drowdawn_tab mdt
+JOIN filter_ipo_tab fit ON mdt.ticker = fit.ticker
+ORDER BY max_drowdawn DESC
+
+
+
+
+       
+       

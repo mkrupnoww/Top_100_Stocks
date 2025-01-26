@@ -1,0 +1,21 @@
+SELECT 
+    ticker,
+    sum_log_return,
+    max_drowdawn,
+    sortino_ratio,
+    avg_vol,
+    'https://finance.yahoo.com/quote/' || ticker || '/chart' AS yahoo_chart_link
+FROM research.best_100_stocks
+WHERE ticker IN (
+    'SO', 'WEC', 'AVGO', 'DHR', 'ABT', 'PEP', 'AMGN', 'ROL', 'RTX', 'FI', 
+    'BDX', 'ECL', 'KMB', 'SHW', 'PEG', 'AON', 'MO', 'HD', 'WMT', 'CL', 
+    'JNJ', 'SYK', 'KR', 'FTNT', 'CHD', 'PG', 'MSFT', 'ADP', 'GIS', 'ODFL', 
+    'EXPD', 'CLX', 'DGX', 'MDT', 'CHRW', 'FAST', 'VOO', 'USMV', 'CVX', 'HSY', 
+    'NVO', 'UNH', 'DTE', 'TJX', 'BALL', 'SCHD', 'SYY', 'LOW', 'NKE', 'ITT', 
+    'PAYX', 'ACN', 'PCAR', 'NOW', 'ITW', 'AEP', 'APD', 'DOV', 'MCD', 'MKC', 
+    'MCHP', 'CPRT', 'MA', 'CAH', 'EMR', 'SRE', 'PGR', 'NUE', 'GILD', 'PH', 
+    'V', 'ADBE', 'DLR', 'GD', 'LMT', 'WM', 'K', 'NTES', 'KKR', 'COST', 'TGT', 
+    'XOM', 'BEN', 'TRV', 'XPO', 'ETN', 'PWR', 'SPLV', 'MMM', 'CSX', 'HON', 
+    'NSC', 'BRK-B', 'TSM', 'SNPS', 'OMC', 'TSLA', 'GOOGL', 'ACGL', 'GNTX'
+)
+ORDER BY sortino_ratio DESC;
