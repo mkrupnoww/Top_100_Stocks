@@ -55,12 +55,12 @@ SELECT data_close_month,
        sum(log_return_spy) OVER (ORDER BY data_close_month) AS PL_return_spy
 FROM etf.spy_return_us10 sru
 )
-SELECT rp.data_close_month, 
+SELECT rp.data_close_month AS date_month, 
        avg_return_pl AS investment_portfolio,
        round(PL_return_spy, 2) AS spy
 FROM avg_return_pl_tab rp
 JOIN PL_return_spy_tab rps ON rp.data_close_month = rps.data_close_month
-
+ORDER BY date_month;
 
 
 
