@@ -1,0 +1,75 @@
+WITH tab_close_num AS (
+SELECT ticker,
+       date_d, 
+       "close" AS price_close,
+       ROW_NUMBER() OVER (PARTITION BY ticker, DATE_TRUNC('month', date_d) ORDER BY ticker, date_d DESC) AS rn 
+FROM research.market_data
+GROUP BY ticker, date_d, price_close
+), prev_close_price_tab AS (
+SELECT ticker,
+       date_d AS date_daily_close,
+       price_close,
+       LAG(price_close) OVER (PARTITION BY ticker ORDER BY ticker, DATE_TRUNC('month', date_d )) AS prev_close_price
+FROM tab_close_num
+WHERE rn = 1
+GROUP BY ticker, date_daily_close, price_close
+), tab_close AS (
+SELECT ticker,
+       DATE_TRUNC('month', date_daily_close)::date AS data_close_month,
+       price_close,
+       prev_close_price
+FROM prev_close_price_tab
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), log_return_prec_month_tab AS (
+SELECT ticker,
+       data_close_month,
+       round((LN(price_close / prev_close_price))::NUMERIC * 100, 2) AS log_return_prec_month
+FROM tab_close
+WHERE EXTRACT(YEAR FROM data_close_month) BETWEEN 2000 AND 2024 
+      AND ticker IN (
+    ('WMT'), ('WEC'), ('SO'), ('JNJ'), ('CL'), ('ED'), ('AVGO'), ('MO'), ('AMGN'), ('BDX'), 
+    ('DHR'), ('ABT'), ('SHW'), ('PEP'), ('CVX'), ('LMT'), ('FAST'), ('ROST'), ('TJX'), ('ROL'),
+    ('KO'), ('ECL'), ('RTX'), ('FI'), ('KR'), ('GILD'), ('KMB'), ('COR'), ('HD'), ('PEG'),
+    ('K'), ('PG'), ('AON'), ('GD'), ('MSFT'), ('SYK'), ('TMO'), ('LOW'), ('FTNT'), ('MDT'),
+    ('CHD'), ('ADP'), ('CLX'), ('DTE'), ('GIS'), ('COST'), ('ODFL'), ('EXPD'), ('INTU'), ('NKE'),
+    ('DGX'), ('MCD'), ('CHRW'), ('CB'), ('VOO'), ('USMV'), ('MCHP'), ('HSY'), ('NVO'), ('UNH'),
+    ('BALL'), ('SCHD'), ('SYY'), ('YUM'), ('ITT'), ('PAYX'), ('NOC'), ('ACN'), ('PCAR'), ('ITW'),
+    ('NOW'), ('PGR'), ('AEP'), ('MNST'), ('APD'), ('DOV'), ('MKC'), ('CPRT'), ('MA'), ('CAH'),
+    ('HON'), ('EMR'), ('SRE'), ('NUE'), ('NSC'), ('PH'), ('V'), ('ADBE'), ('DLR'), ('WM'),
+    ('NTES'), ('KKR'), ('TGT'), ('XOM'), ('BEN'), ('TRV'), ('XPO'), ('ETN'), ('PWR'), ('SPLV')
+)
+GROUP BY ticker, data_close_month, price_close, prev_close_price
+), avg_return_prec_month_tab AS (
+SELECT data_close_month,
+       round(avg(log_return_prec_month), 2) AS avg_return_prec_month
+FROM log_return_prec_month_tab lrp
+GROUP BY data_close_month
+ORDER BY data_close_month
+), avg_return_pl_tab AS (
+SELECT data_close_month,
+       sum(avg_return_prec_month) OVER (ORDER BY data_close_month) AS avg_return_pl
+FROM avg_return_prec_month_tab
+), PL_return_spy_tab AS (
+SELECT data_close_month,
+       log_return_spy,
+       sum(log_return_spy) OVER (ORDER BY data_close_month) AS PL_return_spy
+FROM etf.spy_return_us10 sru
+)
+SELECT rp.data_close_month, 
+       avg_return_pl AS investment_portfolio,
+       round(PL_return_spy, 2) AS spy
+FROM avg_return_pl_tab rp
+JOIN PL_return_spy_tab rps ON rp.data_close_month = rps.data_close_month
+
+
+
+
+
+
+
+
+
+
+
+
+
