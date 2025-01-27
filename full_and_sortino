@@ -1,3 +1,4 @@
+CREATE TABLE research.best_100_stocks AS 
 WITH tab_close_num AS (
 SELECT ticker,
        date_d, 
@@ -40,7 +41,6 @@ SELECT ticker,
        MAX("close") AS max_close,
        (MAX("close") - MIN("close") / NULLIF(MIN("close"), 0) * 100) AS price_change_percent
 FROM research.market_data
-WHERE EXTRACT(YEAR FROM date_d) BETWEEN 2000 AND 2024 
 GROUP BY ticker
 HAVING min(date_d) <= '2015-01-01' AND max(date_d) >= '2024-12-01' AND avg(vol) >= 1000000
        AND (MAX("close") - MIN("close")) / NULLIF(MIN("close"), 0) * 100 >= 50
@@ -56,13 +56,15 @@ SELECT ticker,
        data_close_month,
        sum(log_return_prec_month) OVER (PARTITION BY ticker ORDER BY data_close_month) AS PL_return
 FROM log_return_prec_month_tab
+WHERE EXTRACT(YEAR FROM data_close_month) BETWEEN 2000 AND 2024 
 ORDER BY ticker, data_close_month
 ), drawdown_tab AS (
     SELECT ticker,
            data_close_month,
            PL_return,
            MAX(PL_return) OVER (PARTITION BY ticker ORDER BY data_close_month ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS max_PL_return
-    FROM PL_return_tab
+FROM PL_return_tab
+WHERE EXTRACT(YEAR FROM data_close_month) BETWEEN 2000 AND 2024 
 ), max_drowdawn_tab AS (
 SELECT ticker,
        MAX(max_PL_return - PL_return) AS max_drowdawn
@@ -86,7 +88,6 @@ FROM join_tab_filter_return tfr
 JOIN join_tab_filter_drowdawn tfd ON tfr.ticker = tfd.ticker
 ORDER BY sortino_ratio DESC 
 LIMIT 100;
-
 
 
 
