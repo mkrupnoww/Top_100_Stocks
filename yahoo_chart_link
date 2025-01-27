@@ -7,15 +7,15 @@ SELECT
     'https://finance.yahoo.com/quote/' || ticker || '/chart' AS yahoo_chart_link
 FROM research.best_100_stocks
 WHERE ticker IN (
-    'SO', 'WEC', 'AVGO', 'DHR', 'ABT', 'PEP', 'AMGN', 'ROL', 'RTX', 'FI', 
-    'BDX', 'ECL', 'KMB', 'SHW', 'PEG', 'AON', 'MO', 'HD', 'WMT', 'CL', 
-    'JNJ', 'SYK', 'KR', 'FTNT', 'CHD', 'PG', 'MSFT', 'ADP', 'GIS', 'ODFL', 
-    'EXPD', 'CLX', 'DGX', 'MDT', 'CHRW', 'FAST', 'VOO', 'USMV', 'CVX', 'HSY', 
-    'NVO', 'UNH', 'DTE', 'TJX', 'BALL', 'SCHD', 'SYY', 'LOW', 'NKE', 'ITT', 
-    'PAYX', 'ACN', 'PCAR', 'NOW', 'ITW', 'AEP', 'APD', 'DOV', 'MCD', 'MKC', 
-    'MCHP', 'CPRT', 'MA', 'CAH', 'EMR', 'SRE', 'PGR', 'NUE', 'GILD', 'PH', 
-    'V', 'ADBE', 'DLR', 'GD', 'LMT', 'WM', 'K', 'NTES', 'KKR', 'COST', 'TGT', 
-    'XOM', 'BEN', 'TRV', 'XPO', 'ETN', 'PWR', 'SPLV', 'MMM', 'CSX', 'HON', 
-    'NSC', 'BRK-B', 'TSM', 'SNPS', 'OMC', 'TSLA', 'GOOGL', 'ACGL', 'GNTX'
+    ('WMT'), ('WEC'), ('SO'), ('JNJ'), ('CL'), ('ED'), ('AVGO'), ('MO'), ('AMGN'), ('BDX'), 
+    ('DHR'), ('ABT'), ('SHW'), ('PEP'), ('CVX'), ('LMT'), ('FAST'), ('ROST'), ('TJX'), ('ROL'),
+    ('KO'), ('ECL'), ('RTX'), ('FI'), ('KR'), ('GILD'), ('KMB'), ('COR'), ('HD'), ('PEG'),
+    ('K'), ('PG'), ('AON'), ('GD'), ('MSFT'), ('SYK'), ('TMO'), ('LOW'), ('FTNT'), ('MDT'),
+    ('CHD'), ('ADP'), ('CLX'), ('DTE'), ('GIS'), ('COST'), ('ODFL'), ('EXPD'), ('INTU'), ('NKE'),
+    ('DGX'), ('MCD'), ('CHRW'), ('CB'), ('VOO'), ('USMV'), ('MCHP'), ('HSY'), ('NVO'), ('UNH'),
+    ('BALL'), ('SCHD'), ('SYY'), ('YUM'), ('ITT'), ('PAYX'), ('NOC'), ('ACN'), ('PCAR'), ('ITW'),
+    ('NOW'), ('PGR'), ('AEP'), ('MNST'), ('APD'), ('DOV'), ('MKC'), ('CPRT'), ('MA'), ('CAH'),
+    ('HON'), ('EMR'), ('SRE'), ('NUE'), ('NSC'), ('PH'), ('V'), ('ADBE'), ('DLR'), ('WM'),
+    ('NTES'), ('KKR'), ('TGT'), ('XOM'), ('BEN'), ('TRV'), ('XPO'), ('ETN'), ('PWR'), ('SPLV')
 )
 ORDER BY sortino_ratio DESC;
