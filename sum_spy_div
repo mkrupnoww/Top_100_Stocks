@@ -1,0 +1,34 @@
+WITH dividend_prec_tab AS (
+SELECT quarter,
+       DATE_TRUNC('month', quarter)::date AS month_date,
+       dividend_usd,
+       round(((dividend_usd::numeric / "close"::numeric) * 100), 2) AS dividend_prec,
+       date_daily,
+       "close"
+FROM etf.spy_div sd
+JOIN etf.daily_spy ON quarter = date_daily
+), join_tab AS (
+SELECT data_close_month,
+       COALESCE(dividend_usd, 0) AS dividend_usd,
+       COALESCE(dividend_prec, 0) AS dividend_prec,
+       log_return_spy,
+       log_return_spy + COALESCE(dividend_prec, 0) AS return_spy_wdiv
+FROM etf.pl_return_spy prs 
+LEFT JOIN dividend_prec_tab dp ON prs.data_close_month = dp.month_date
+ORDER BY data_close_month
+), PL_return_spy_div AS (
+SELECT data_close_month, 
+       log_return_spy,
+       dividend_usd,
+       round((dividend_prec)::numeric, 2) AS dividend_prec,
+       return_spy_wdiv,
+       sum(return_spy_wdiv) OVER (ORDER BY data_close_month) AS PL_return_spy_div
+FROM join_tab
+)
+SELECT round((sum(log_return_spy)), 1) AS sum_log_return_spy,
+       round((sum(dividend_prec)), 1) AS sum_dividend,
+       round((sum(return_spy_wdiv)), 1) AS sum_spy_dividend     
+FROM join_tab;
+
+
+
